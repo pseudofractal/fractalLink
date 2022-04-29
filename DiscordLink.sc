@@ -1,13 +1,13 @@
 __config() -> {
     'scope'->'global',
-    'bot'->'961211554731282482' //Bot Id, use developer options
+    'bot'->'BotId' //Bot Id, use developer options
 };
 
 //Change values for your server ***************************************************************************************
-global_chat = dc_channel_from_id('965879598279688222'); //Chat Channel Id
-global_sThumbnail = 'https://imgur.com/a/mmnQy7z.jpg';//Currently nut logo //Thumbnail, please dont forget .jpg/other file formats I dont think it works without that
-global_admin_role = dc_role_from_id('962723088338944004'); //Role Id for Console access
-global_log = dc_channel_from_id('965879652222660618'); //Channel for console log
+global_chat = dc_channel_from_id('ChannelId'); //Chat Channel Id
+global_sThumbnail = 'https://imgur.com/a/9ckY1YY.jpg';//Thumbnail, please dont forget .jpg/other file formats I dont think it works without that
+global_admin_role = dc_role_from_id('RoleId'); //Role Id for Console access
+global_log = dc_channel_from_id('ChannelId'); //Channel for console log
 //************************************************************************************************************
 
 
