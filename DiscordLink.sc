@@ -6,7 +6,7 @@ __config() -> {
 //Change values for your server ***************************************************************************************
 global_chat = dc_channel_from_id('965879598279688222'); //Chat Channel Id
 global_sThumbnail = 'https://imgur.com/a/mmnQy7z.jpg';//Currently nut logo //Thumbnail, please dont forget .jpg/other file formats I dont think it works without that
-global_admin_role = dc_role_from_id('962723088338944004'); //Role Id for Consoel access
+global_admin_role = dc_role_from_id('962723088338944004'); //Role Id for Console access
 global_log = dc_channel_from_id('965879652222660618'); //Channel for console log
 //************************************************************************************************************
 
