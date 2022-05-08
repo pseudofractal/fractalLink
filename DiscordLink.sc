@@ -15,13 +15,27 @@ global_log = dc_channel_from_id('ChannelId'); //Channel for console log
 global_executions = 0;
 global_server = global_chat~'server';
 
+// Settings and IdFile creation
 idFile= read_file('DiscordId','json');
 if(idFile==null,
 	//when no file found
     global_idData={};
-    ,  
-    //when file found
+    ,//when file found
     global_idData=idFile;
+);
+qFile = read_file('query','json');
+if(qFile==null,
+    //when no file is found
+    global_qSetting=[];
+    , //when file is found
+    global_qSetting = qFile;
+);
+cFile = read_file('commands','json');
+if(cFile==null,
+    //when no file is found
+    global_dCmd=[];
+    ,//when file is found
+    global_dCmd = cFile;
 );
 
 
@@ -49,12 +63,10 @@ __on_tick() -> (
 );
 
 __on_discord_message(message) -> (
-	
-  	if(message~'user'~'is_bot' || message~'user'==null ,return());
 
+	if(message~'channel'~'id'!=global_chat~'id',return()); //limit to chat channel only
+  	if(message~'user'~'is_bot' || message~'user'==null ,return());
     _cmdCheck(message, message~'channel');
-    
-    if(message~'channel'~'id'!=global_chat~'id',return()); //limit to chat channel only
   	_chatLink(message)
     
 );
@@ -134,8 +146,6 @@ __on_chat_message(message, player, command) -> {
 
 _cmdCheck(message, channel) -> (
 	
-    if(channel!=global_chat, return());
-
     text= message~'readable_content';
     if(length(text)==0,return());
     char = slice(text,0,1);
@@ -144,7 +154,7 @@ _cmdCheck(message, channel) -> (
         cmd = split(' ',slice(text,1));
         
         
-        if(cmd:0=='status',
+        if(cmd:0=='status' && global_dCmd~'status'==null,
         	
             mspt=ceil(system_info('server_last_tick_times'):0);
             tps= 1000/mspt;
@@ -210,7 +220,7 @@ _cmdCheck(message, channel) -> (
         ));
         
         
-        if(cmd:0=='link',
+        if(cmd:0=='link' && global_dCmd~'link'==null,
         	
             if(global_idData~str(cmd:1),
             	
@@ -230,7 +240,7 @@ _cmdCheck(message, channel) -> (
             
         );       
         
-        if(cmd:0=='unlink',
+        if(cmd:0=='unlink' && global_dCmd~'unlink'==null,
         	
             if(!global_idData~str(cmd:1),
             	dc_send_message(channel,str('%s is not linked to any profile.',cmd:1)),
@@ -252,7 +262,7 @@ _cmdCheck(message, channel) -> (
         
         );
         
-        if(cmd:0=='query',
+        if(cmd:0=='query' && global_dCmd~'query'==null,
         
            	p=null;
 			for(player('all'),
@@ -317,10 +327,6 @@ _cmdCheck(message, channel) -> (
 
             f = [
             {
-            	'name' -> 'Discord Profile',
-                'value' -> name
-            },
-            {
         	'name' -> 'Health',
             'value' -> str(p~'health'),
             'inline' -> true
@@ -328,40 +334,60 @@ _cmdCheck(message, channel) -> (
             {
         	'name' -> 'Ping',
             'value' -> str(p~'ping'),
-            'inline' -> true
-            },
-            {
-        	'name' -> 'Role',
-            'value' -> str(p~'team'),
-            'inline' -> true
-            },
-            {
-            'name'->'Food Status',
-            'value'-> str('Hunger: %s \nSaturation:%s',p~'hunger',p~'saturation')
-            },
-            {
-        	'name' -> 'Dimension',
-            'value' -> str(p~'dimension'),
-            'inline' -> true
-            },
-            {
-            'name'->'Position',
-            'value'-> str(position),
-            'inline' -> true
-            },
-            {
-        	'name' -> 'Activity',
-            'value' -> str(p~'pose')
-            },
-            {
-        	'name' -> 'Active Effects',
-            'value' -> effectList
-            },
-            {
-        	'name' -> 'Items',
-            'value' -> holds
             }
             ];
+
+            if(global_qSetting~'food'==null,
+                f += {
+                    'name'->'Food Status',
+                    'value'-> str('Hunger: %s \nSaturation:%s',p~'hunger',p~'saturation')
+                    }
+            );
+
+            if(global_qSetting~'position' ==null,
+                f += [
+                    {
+        	            'name' -> 'Dimension',
+                        'value' -> str(p~'dimension'),
+                        'inline' -> true
+                    },
+                    {
+                        'name'->'Position',
+                        'value'-> str(position),
+                        'inline' -> true
+                    }
+                    ]
+            );
+
+            if(global_qSetting~'activity'==null,
+                f += {
+        	        'name' -> 'Activity',
+                    'value' -> str(p~'pose')
+                    }
+            );
+
+            if(global_qSetting~'effects'==null,
+                f += {
+        	        'name' -> 'Active Effects',
+                    'value' -> effectList
+                }
+            );
+
+            if(global_qSetting~'items'==null,
+                f += {
+        	        'name' -> 'Items',
+                    'value' -> holds
+                }
+            );
+
+            if(global_qSetting~'discord'==null,
+                f += {
+            	'name' -> 'Discord Profile',
+                'value' -> name
+                }
+            );
+
+
             e=_makeEmbed('Query',str(p),f,requester,requesterProfile,thumbnail);
             task(_(outer(e),outer(message),outer(channel))->(
                 dc_send_message(channel,{
@@ -373,7 +399,7 @@ _cmdCheck(message, channel) -> (
 
             );
 
-        if(cmd:0=='console',
+        if(cmd:0=='console'  && global_dCmd~'console'==null,
 
             admin = false;
             for(dc_get_user_roles(message~'user',global_server),
@@ -405,7 +431,7 @@ _cmdCheck(message, channel) -> (
 
         );
 
-        if(cmd:0=='hardware',
+        if(cmd:0=='hardware'  && global_dCmd~'hardware'==null,
 
             requester= str('Requested By: %s', message~'user'~'name');
             requesterProfile= str(message~'user'~'avatar');
@@ -451,39 +477,47 @@ _cmdCheck(message, channel) -> (
             f=[
                 {
                     'name' -> 'status',
-                    'value' -> str('Tells about performance and player count.')
+                    'value' -> 'Tells about performance and player count.'
                 },
                 {
                     'name' -> 'query',
-                    'value' -> str('Allows you to query an online player and know more about its position,etc. \nUsage: !query [player name]')
+                    'value' -> 'Allows you to query an online player and know more about its position,etc. \nUsage: !query [player name]'
                 },
                 {
                     'name' -> 'pinv',
-                    'value' -> str('Query the entire player inventory. \nUsage: !pinv [player name]')
+                    'value' -> 'Query the entire player inventory. \nUsage: !pinv [player name]'
                 },
                 {
                     'name' -> 'inv',
-                    'value' -> str('Query the contents of an inventory. \nUsage: !inv [x coordinate] [y coordinate] [z coordinate]')
+                    'value' -> 'Query the contents of an inventory. \nUsage: !inv [x coordinate] [y coordinate] [z coordinate]'
                 },
                 {
                     'name' -> 'deepinv',
-                    'value' -> str('Tells more about an item in a particular inventory slot.\nUsage: !deepinv [x coordinate] [y coordinate] [z coordinate] [slot number]')
+                    'value' -> 'Tells more about an item in a particular inventory slot.\nUsage: !deepinv [x coordinate] [y coordinate] [z coordinate] [slot number]'
                 },
                 {
                     'name' -> 'link',
-                    'value' -> str('Used to link your minecraft account to discord account. \nWill serve purpose in future plans. \nUsage !link [minecraft name]')
+                    'value' -> 'Used to link your minecraft account to discord account. \nWill serve purpose in future plans. \nUsage !link [minecraft name]'
                 },
                 {
                     'name' -> 'unlink',
-                    'value' -> str('Self explanatory. Used to unlink')
+                    'value' -> 'Self explanatory. Used to unlink'
                 },
                 {
                     'name' -> 'console',
-                    'value' -> str('Run commands on console, need admin rule to be specefied. \nUsage: !console [command(without /)]')
+                    'value' -> 'Run commands on console, need admin rule to be specefied. \nUsage: !console [command(without /)]'
                 },
                 {
                     'name' -> 'hardware',
-                    'value' -> str('Provides information about cpu usage,ram usage etc')
+                    'value' -> 'Provides information about cpu usage,ram usage etc'
+                },
+                {
+                    'name' -> 'dcmd',
+                    'value' -> 'Add/Remove/List all disabled utility commands. \nUsage: !dcmd [add/remove] [The coorect command name from help] \nUsage: !dcmd list ;(will show list of disabled commands)'
+                },
+                {
+                    'name' -> 'dquery',
+                    'value' -> 'Add/Remove/List all disabled query features. Same usages as dcmd'
                 }
             ];
 
@@ -498,7 +532,7 @@ _cmdCheck(message, channel) -> (
 
         );
 
-        if(cmd:0=='pinv',
+        if(cmd:0=='pinv' && global_dCmd~'pinv'==null,
         
             p=null;
 			for(player('all'),
@@ -551,7 +585,7 @@ _cmdCheck(message, channel) -> (
 
         );
 
-        if(cmd:0 == 'inv',
+        if(cmd:0 == 'inv' && global_dCmd~'inv'==null,
 
             x = number(cmd:1);
             y = number(cmd:2);
@@ -607,7 +641,7 @@ _cmdCheck(message, channel) -> (
             ));
     );
 
-    if(cmd:0 == 'deepinv',
+    if(cmd:0 == 'deepinv'  && global_dCmd~'deepinv'==null,
 
         x = number(cmd:1);
         y = number(cmd:2);
@@ -697,6 +731,116 @@ _cmdCheck(message, channel) -> (
             })    
             ));
         
+    );
+
+    if(cmd:0 == 'dcmd',
+
+        requester= str('Requested By: %s', message~'user'~'name');
+        requesterProfile= str(message~'user'~'avatar');
+        thumbnail = global_sThumbnail;
+        a = '';
+        if(cmd:1 == 'list',
+            a = 'Subcommand used: List';
+            dCmd = '';
+            for(global_dCmd, dCmd+=str('%s \n',_));
+            f=[{
+                'name' -> 'Disabled Commands',
+                'value' -> dCmd
+                }
+            ];
+        );
+
+        if(cmd:1 == 'add',
+            a = 'Subcommand used: Add';
+            global_dCmd+= cmd:2;
+            delete_file('commands','json');
+            write_file('commands','json',global_dCmd);
+            dCmd = '';
+            for(global_dCmd, dCmd+=str('%s \n',_));
+            f=[{
+                'name' -> 'Updated Command List',
+                'value' -> dCmd
+                }
+            ];
+        );
+
+        if(cmd:1 == 'remove',
+            a = 'Subcommand used: Remove';
+            delete(global_dCmd,cmd:2);
+            delete_file('commands','json');
+            write_file('commands','json',global_dCmd);
+            dCmd = '';
+            for(global_dCmd, dCmd+=str('%s \n',_));
+            f=[{
+                'name' -> 'Updated Command List',
+                'value' -> dCmd
+                }
+            ];
+        );
+
+
+        e =_makeEmbed('Disabled Utility Commands',a,f,requester,requesterProfile,thumbnail);
+            task(_(outer(e),outer(message),outer(channel))->(
+                dc_send_message(channel,{
+            	'content' -> '',
+                'embeds' -> [e],
+                'reply_to' -> message
+            })    
+            ));
+
+    );
+
+    if(cmd:0 == 'dquery',
+
+        requester= str('Requested By: %s', message~'user'~'name');
+        requesterProfile= str(message~'user'~'avatar');
+        thumbnail = global_sThumbnail;
+        a = '';
+
+        if(cmd:1 == 'list',
+            a = 'Subcommand used: List';
+            dQ = '';
+            for(global_qSetting, dQ += str('%s \n',_));
+            f = [{
+                'name' -> 'Disabled Query Fields',
+                'value' -> dQ
+            }];
+        );
+
+        if(cmd:1 == 'add',
+            a = 'Subcommand used: Add';
+            global_qSetting += cmd:2;
+            delete_file('query','json');
+            write_file('query','json',global_qSetting);
+            dQ = '';
+            for(global_qSetting, dQ += str('%s \n',_));
+            f=[{
+                'name' -> 'Updated disabled queries',
+                'value' -> dQ
+            }];          
+        );
+
+        if(cmd:1 =='remove',
+            a = 'Subcommand used: Remove';
+            delete(global_qSetting,cmd:2);
+            delete_file('query','json');
+            write_file('query','json',global_qSetting);
+            dQ = '';
+            for(global_qSetting, dQ += str('%s \n',_));
+            f=[{
+                'name' -> 'Updated disabled query list',
+                'value' -> dQ
+            }];
+        );
+
+        if(cmd:1 == 'help',
+            a = '';
+            f=[{
+                'name' -> 'List of available queries',
+                'value' -> 'food\nposition\nactivity\neffects\nitems'
+            }]
+        );
+    
     );
 ));
 
