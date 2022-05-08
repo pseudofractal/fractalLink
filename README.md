@@ -82,7 +82,7 @@ They don't serve any great purpose right now except telling what discord id is o
 
 ## Credits
 
-1.  [Xujiayao's](https://github.com/Xujiayao) [MCDiscordChat](https://github.com/Xujiayao/MCDiscordChat) for heavily inspiring teh chat.
+1.  [Xujiayao's](https://github.com/Xujiayao) [MCDiscordChat](https://github.com/Xujiayao/MCDiscordChat) for heavily inspiring the chat.
 2.  [Chronos Server](https://github.com/ChronosServer) for giving great ideas.
 3.  [Replace Item](https://github.com/replaceitem) for making [Discarpet](https://github.com/replaceitem/carpet-discarpet) 
 4.  Everyone in [Carpet Discord](https://discord.gg/gn99m4QRY4) for helping me with my dumb questions and issues.
