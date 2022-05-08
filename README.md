@@ -1,7 +1,10 @@
 # Fractal Link
 Advanced querying tool for Technical Minecraft Servers and anyone else who wants to spy on their server members.
+
 For more information or if server owners/ members want to test this out. Ping me in the chat or dm me on discord.
 If servers admins or members are intrested I will probably make the testing discord server public as a preview of features before adding it to their servers.
+
+Note: The name is used no where inside the script. So feel free to change your bot name, if you have something against fractals.
 
 Requirements: Discarpet, Carpet Mod
  
@@ -82,4 +85,12 @@ They don't serve any great purpose right now except telling what discord id is o
 1.  [Xujiayao's](https://github.com/Xujiayao) [MCDiscordChat](https://github.com/Xujiayao/MCDiscordChat) for heavily inspiring teh chat.
 2.  [Chronos Server](https://github.com/ChronosServer) for giving great ideas.
 3.  [Replace Item](https://github.com/replaceitem) for making [Discarpet](https://github.com/replaceitem/carpet-discarpet) 
-4.  Everyone in [Carpet Discord](https://discord.gg/gn99m4QRY4) for helping me with my dumb questions and issues
+4.  Everyone in [Carpet Discord](https://discord.gg/gn99m4QRY4) for helping me with my dumb questions and issues.
+5. And last but not the least, [iDarkLightning's](https://github.com/iDarkLightning) [LiteBot](https://github.com/iDarkLightning/LiteBot) for being the best competition out there (Thats a strong word considering it was one sided...)
+
+## End Notes
+
+This is still in its alpha release so whenever you are using this, here be dragons or something. Please check [Issues](https://github.com/SurfingDude-1182/fractalLink/issues) for issues and for future features.
+You can find me in multiple servers, or you can dm me on Surf#1182.
+
+Imma hope some servers atleast use this :kekhands:
