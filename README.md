@@ -71,7 +71,7 @@ Allows the user to run some command on console. Also displays output. Note: You 
 
 ### 7. Hardware
 
-Credits to chezlock and chronos team for this idea. Ths is a bit unpolished right now, the names will be better in future releases for stupid people like me.
+Credits to Chezloc and Chronos team for this idea. Ths is a bit unpolished right now, the names will be better in future releases for stupid people like me.
 
 <img src="Images/hardware.png" width="300">
 
