@@ -43,19 +43,22 @@ if(cFile==null,
 __on_server_starts()-> (
     task(_()->(
         global_chat_webhook= dc_create_webhook(global_chat,{
-            'name' -> 'Init'
+            'name' -> 'Init',
+	        'avatar' -> 'https://raw.githubusercontent.com/replaceitem/carpet-discarpet/master/src/main/resources/assets/discarpet/icon.png'
         });
-        dc_send_message(global_chat,'Server Started');
+        if(global_chat_webhook!=null,
+            logger('FractalLink initialzed.');
+            dc_send_message(global_chat,'Server Started')
+        ,
+            logger('error','Error In Initializing Webhook. Please restart server to fix.')
+        );
     ));
-    if(global_chat_webhook!=null,logger('FractalLink initialzed.'),
-        logger('Error In Initializing Webhook. Please restart server to fix.','error')
-    );
 );
 
 __on_server_shuts_down()-> (
     if(global_chat_webhook==null,return());
-    dc_delete_webhook(global_chat_webhook);
     dc_send_message(global_chat, 'Server stopped');
+    dc_delete(global_chat_webhook);
 );
 
 __on_tick() -> (
