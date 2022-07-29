@@ -57,8 +57,8 @@ __on_server_starts()-> (
 
 __on_server_shuts_down()-> (
     if(global_chat_webhook==null,return());
-    dc_delete_webhook(global_chat_webhook);
     dc_send_message(global_chat, 'Server stopped');
+    dc_delete(global_chat_webhook);
 );
 
 __on_tick() -> (
