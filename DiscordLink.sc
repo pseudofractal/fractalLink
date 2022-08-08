@@ -106,11 +106,15 @@ __on_player_connects(player) -> (
 
 __on_player_disconnects(player, reason)->(
 	if(player~'player_type'=='fake',
+    	task(_(outer(player))->(
+           dc_send_message(global_chat, str('[Bot] %s left',player))
+        ));
     	delete(global_fake_player,player)
       );
-   	task(_(outer(player))->(
+      if(player~'player_type'=='multiplayer',
+   		task(_(outer(player))->(
            dc_send_message(global_chat, str('%s left',player));
-       ));
+       )));
 );
 
 __on_chat_message(message, player, command) -> {
