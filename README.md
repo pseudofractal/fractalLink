@@ -1,5 +1,5 @@
 # Fractal Link
-Advanced querying tool for Technical Minecraft Servers and anyone else who wants to spy on their server members.
+Advanced querying tool for Technical Minecraft Servers ~~and anyone else who wants to spy on their server members.~~
 
 For more information or if server owners/ members want to test this out. Ping me in the chat or dm me on discord.
 If servers admins or members are intrested I will probably make the testing discord server public as a preview of features before adding it to their servers.
