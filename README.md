@@ -1,5 +1,5 @@
 # Fractal Link
-Don't use this lol
+Don't use this lol, use main branch for whatever reason
 
 Rewriting stuff cuz I know some more scarpet now. Will also contain newer better features.
 
