@@ -6,7 +6,7 @@ Rewriting stuff cuz I know some more scarpet now. Will also contain newer better
 ## Plans: (The order may or maynot be followed, except 1 whcih will be done first)
 
 ### 1. Rewrite stuff to be easier to read
-Gonna take the least amount of time. Should make readbility x100 times better.
+Gonna take the least amount of time. Should make readbility x100 times better. Edit: Did I say least amoutn of time?? That would have been the case if I was motivated. I am really not motivated rn.
 
 ### 2. Inventory will be viewed as a picture
 Using scarpet grpahics, plan is to make everything look very good
