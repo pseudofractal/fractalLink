@@ -25,6 +25,8 @@ global_chat = dc_channel_from_id(global_config:'chatChannelId');
 global_thumbnail = global_config:'thumbnailUrl';
 global_aRole = dc_role_from_id(global_config:'adminRoleId');
 global_log = dc_channel_from_id(global_config:'logChannelId');
+global_executions = 0;
+global_server = global_chat~'server';
 
 storageFile =  read_file('data','JSON');
 if(has(storageFile,'discordId'),
@@ -42,35 +44,34 @@ if(has(storageFile,'disabledQuery'),
 
 __on_start() -> (
 
-    if(global_config:'botId' == null, return());
+    if(global_config:'botId' == null, return);
     task(_() -> (
-
         global_chatWebhook = dc_create_webhook(global_chat,{
             'name' -> 'Julia',
             'avatar' -> global_thumbnail
         });
         if(global_chatWebhook != null,
             logger('Julia initialzed.');
-            dc_send_message(global_chat,'Server Started')
-            , //else throw error
-            logger('error','Error In Initializing Webhook. Please restart server to fix.')
+            dc_send_message(global_chat,'Server Started');
+            ,//else throw error
+            logger('error','Error In Initializing Webhook. Stopping server now. Please restart server to fix.');
+            run('stop')
         );
     ));
-
 );
 
 __on_close()->(
     if(global_chatWebhook!=null,
         dc_send_message(global_chat, 'Server stopped');
-        dc_delete(global_chat_webhook)
-    )
+        dc_delete(global_chatWebhook)
+    );
 );
 
 
 __on_discord_message(message) -> (
 
-    if(message~'channel'~'id'!=global_chat~'id',return()); //limit to chat channel only
-  	if(message~'user'~'is_bot' || message~'user'==null ,return());
+    if(message~'channel'~'id'!=global_chat~'id',return); //limit to chat channel only
+  	if(message~'user'~'is_bot' || message~'user'==null ,return);
     
     //Check for command
     if(len(message~'readable_content') !=0 && slice(message~'readable_content',0,1) == '!',
@@ -105,4 +106,68 @@ __on_discord_message(message) -> (
             );
         );
     );
+);
+
+__on_system_message(text,type,entity) -> (
+    global_executions += 1; //prevent recursion
+    if(global_executions < 10,
+        if((type~'commands.save.') == null, //dont send 'saving world' messages
+            task(_(outer(text)) -> (
+                dc_send_message(global_log,text); //send to discord
+            ));
+        );
+    );
+);
+
+__on_player_connects(player) -> (
+    task(_(outer(player)) -> (
+        pos = _position(player);
+        dim = _dim(player);
+        type = player~'player_type';
+
+        if(type == 'multiplayer' || type == 'singleplayer' || type == 'lan_host' || type == 'lan_player',
+            dc_send_message(global_chat, str('%s joined.',player)),
+            type == 'fake',
+            dc_send_message(global_chat, str('[BOT]%s has joined in %s at position: %s',player,dim,pos)),
+            // type == 'shadow'
+            dc_send_message(global_chat, str('%s shadowed in %s at position: %s',player,dim,pos)
+        );
+    ))
+);
+
+__on_player_disconnects(player, reason)->(
+    task(_(outer(player),outer(reason)) -> (
+        dc_send_message(global_chat, str('%s left. Reason:\n%s', player, reason))
+    ))
+);
+
+__on_chat_message(message, player, command) -> (
+
+    if(command,
+        dc_send_message(global_log,str('%s: %s',player,message));
+        return;
+    );
+
+    if(global_chatWebhook == null,
+        print(player('all'),format('br Error while initializing webhook. Please ask admins for a restart.'));
+        logger('Error while intializing webhook. Please restart','error');
+        return;
+    );
+
+    name = str(player);
+    avatar = str('https://minotar.net/helm/%s/200.png',player ~ 'name');
+);
+
+// Helper Functions
+
+_dim(player) -> (
+    dimension = player~'dimension';
+    if(dimension == 'overworld', return('Overworld'),
+       dimension == 'the_nether', return('Nether'),
+       return('End')
+    )
+);
+
+_position(player) -> (
+    return(map(pos(player),floor(_)))
 );
