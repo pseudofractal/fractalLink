@@ -29,16 +29,16 @@ global_executions = 0;
 global_server = global_chat~'server';
 
 storageFile =  read_file('data','JSON');
-if(has(storageFile,'discordId'),
-    global_discordId = storageFile:'discordId',
-    global_discordId = {}
+if(has(storageFile,'discordProfiles'),
+    global_discordProfile = storageFile:'discordProfiles',
+    global_discordProfile = {}
 );
 if(has(storageFile,'disabledCommands'),
     global_dCmds = storageFile:'disabledCommands',
     global_dCmds = {}
 );
-if(has(storageFile,'disabledQuery'),
-    global_dQuery = storageFile:'disabledQuery',
+if(has(storageFile,'disabledQueries'),
+    global_dQuery = storageFile:'disabledQueries',
     global_dQuery = {}
 );
 
@@ -76,7 +76,7 @@ __on_discord_message(message) -> (
     //Check for command
     if(len(message~'readable_content') !=0 && slice(message~'readable_content',0,1) == '!',
         cmdName = split(' ',slice(message~'readable_content',1));
-        call(cmdName,message);
+        call(cmdName:0,message,cmdName);
     );
 
     //Normal Message
@@ -120,6 +120,15 @@ __on_system_message(text,type,entity) -> (
 );
 
 __on_player_connects(player) -> (
+
+    if(player~'player_type' != 'fake' && global_discordProfile:(player~'uuid'):'id' == null,
+        random = floor(rand(10^4 - 10^3) + 10^3);
+        global_discordProfile:(player~'uuid') = {
+            'verification' : random
+        };
+        run(str('kick %s Please send following message in discord chat to verify: !link %s',player,random));
+    );
+
     task(_(outer(player)) -> (
         pos = _position(player);
         dim = _dim(player);
@@ -156,6 +165,33 @@ __on_chat_message(message, player, command) -> (
 
     name = str(player);
     avatar = str('https://minotar.net/helm/%s/200.png',player ~ 'name');
+);
+
+//Commands
+link(message,components) -> (
+
+    success = false;
+    for(keys(global_discordProfile), 
+        if(global_discordProfile:_:'verification' == components:1,
+
+            user = message ~ 'user';
+            global_discordProfile:_:'id' = user ~ 'id';
+            global_discordProfile:_:'name' = user ~ 'name';
+            global_discordProfile:_:'nickname' = dc_get_display_name(user,message~'server');
+            global_discordProfile:_:'avatar' = user ~ 'avatar';
+            global_discordProfile:_:'mention_tag' = user ~ 'mention_tag';
+            global_discordProfile:_: 'discriminated_name' = user ~ 'discriminated_name';
+            delete(global_discordProfile:_:'verification');
+            success = true;
+            break;
+        );
+    );
+    
+    task(_(outer(message)) -> (
+        if(success,
+            //TODO: Send messages and stuff
+        )
+    ));
 );
 
 // Helper Functions
