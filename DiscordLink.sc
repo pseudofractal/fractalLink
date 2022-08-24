@@ -11,13 +11,17 @@ __config() -> {
         'logChannelId <id>' -> ['changeConfig','logChannelId'],
         'adminRoleId <id>' -> ['changeConfig','adminRoleId'],
         'thumbnailUrl <url>' -> ['changeConfig','thumbnailUrl'],
-        'useDiscordPictureInWebhook <boolean>' -> ['changeConfig','useDiscordPicture']
+        'useDiscordPictureInWebhook <boolean>' -> ['changeConfig','useDiscordPicture'],
+        'embedColor <color>' -> ['changeConfig','embedColor'],
+        'embedColour <colour>' -> ['changeConfig','embedColor']
     },
     'arguments' ->
     {
         'id' -> {'type' -> 'int'},
         'url' -> {'type' -> 'term'},
-        'boolean' -> {'type' -> 'bool', 'suggest' -> [true,false]}
+        'boolean' -> {'type' -> 'bool', 'suggest' -> [true,false]},
+        'color' -> {'type' -> 'term', 'suggest' -> ['RRGGBB']},
+        'colour' -> {'type' -> 'term', 'suggest' -> ['RRGGBB']}
     }
 };
 
@@ -25,6 +29,7 @@ global_chat = dc_channel_from_id(global_config:'chatChannelId');
 global_thumbnail = global_config:'thumbnailUrl';
 global_aRole = dc_role_from_id(global_config:'adminRoleId');
 global_log = dc_channel_from_id(global_config:'logChannelId');
+global_embedColor = global_config:'embedColor';
 global_executions = 0;
 global_server = global_chat~'server';
 
@@ -71,6 +76,8 @@ __on_close()->(
 
 __on_discord_message(message) -> (
 
+    if(global_chatWebhook == null, return);
+
     if(message~'channel'~'id'!=global_chat~'id',return); //limit to chat channel only
   	if(message~'user'~'is_bot' || message~'user'==null ,return);
     
@@ -110,6 +117,9 @@ __on_discord_message(message) -> (
 );
 
 __on_system_message(text,type,entity) -> (
+
+    if(global_chatWebhook == null, return);
+
     global_executions += 1; //prevent recursion
     if(global_executions < 10,
         if((type~'commands.save.') == null, //dont send 'saving world' messages
@@ -121,6 +131,8 @@ __on_system_message(text,type,entity) -> (
 );
 
 __on_player_connects(player) -> (
+
+    if(global_chatWebhook == null, return);
 
     if(player~'player_type' != 'fake' && global_discordProfile:(player~'uuid'):'id' == null,
         random = floor(rand(10^4 - 10^3) + 10^3);
@@ -151,6 +163,8 @@ __on_player_connects(player) -> (
 
 __on_player_disconnects(player, reason)->(
 
+    if(global_chatWebhook == null, return);
+
     //TODO: Send as embed
     task(_(outer(player),outer(reason)) -> (
         dc_send_message(global_chat, str('%s left. Reason:\n%s', player, reason))
@@ -159,14 +173,10 @@ __on_player_disconnects(player, reason)->(
 
 __on_chat_message(message, player, command) -> (
 
+    if(global_chatWebhook == null, return);
+
     if(command,
         dc_send_message(global_log,str('%s: %s',player,message));
-        return;
-    );
-
-    if(global_chatWebhook == null,
-        print(player('all'),format('br Error while initializing webhook. Please ask admins for a restart.'));
-        logger('Error while intializing webhook. Please restart','error');
         return;
     );
 
@@ -236,16 +246,77 @@ unlink(message, components) -> (
     ))
 );
 
+query(message,components) -> (
+
+    if(map(player('all'),str(_))~components:1,
+        //if
+        player = player(components:1),
+        //else
+        dc_send_message(global_chat,{
+                'content' -> 'Requested player is not online',
+                'reply_to' -> message
+            });
+        return
+    );
+
+    requester = message ~ 'user';
+    pos = str(_position(player));
+    dim = _dim(player);
+    vItems = _visibleItems(player); 
+
+);
+
 // Helper Functions
 
 _dim(player) -> (
     dimension = player~'dimension';
-    if(dimension == 'overworld', return('Overworld'),
-       dimension == 'the_nether', return('Nether'),
-       return('End')
+    if(dimension == 'overworld', 'Overworld',
+       dimension == 'the_nether', 'Nether',
+       'End'
     )
 );
 
 _position(player) -> (
-    return(map(pos(player),floor(_)))
+    map(pos(player),floor(_))
+);
+
+_visibleItems(p) -> (
+    m=query(p,'holds','mainhand'):0;
+    o=query(p,'holds','offhand'):0;
+    h=query(p,'holds','head'):0;
+    c=query(p,'holds','chest'):0;
+    l=query(p,'holds','legs'):0;
+    f=query(p,'holds','feet'):0;
+
+    m= replace(m,'_',' ');
+    o= replace(o,'_',' ');
+    h= replace(h,'_',' ');
+    c= replace(c,'_',' ');
+    l= replace(l,'_',' ');
+    f= replace(f,'_',' ');
+
+    if(m=='null', m='');
+    if(o=='null', o='');
+    if(h=='null', h='');
+    if(c=='null', c='');
+    if(l=='null', l='');
+    if(f=='null', f='');
+            
+    str('Mainhand: %s\nOffhand: %s\nHelmet: %s\nChestplate: %s\nLeggings: %s\nBoots: %s',m,o,h,c,l,f)
+);
+
+_makeEmbed(title,description,fields,requester,thumbnail) -> (
+
+	embed = {    
+    'title'-> title,
+    'description'-> description,
+    'fields'-> fields,
+    'color'-> str('0x%s',global_embedColor),
+    'footer'->{
+        'text'-> str('Requested by: %s',requester ~ 'name'),
+        'icon'-> requester ~ 'avatar'
+    },
+    'thumbnail'-> thumbnail
+    };
+    return(embed);
 );
