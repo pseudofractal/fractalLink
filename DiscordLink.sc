@@ -195,14 +195,45 @@ link(message,components) -> (
         );
     );
     //TODO: Send as embed
-    task(_(outer(message)) -> (
+    task(_(outer(message),outer(success)) -> (
         if(success,
             dc_send_message(global_chat,{
-                'content' -> str('Your account has been linked to %s',userProfile:'username'),
+                'content' -> str('Your account has been linked to %s.',userProfile:'username'),
                 'reply_to' -> message
-            });
+            }),
+            //TODO: Send as embed
+            dc_send_message(global_chat,{
+                'content' -> 'Either your account is already verified or the verification code that you sent is incorrect.',
+                'reply_to' -> message
+            })
         )
     ));
+);
+
+unlink(message, components) -> (
+    success = false;
+    for(keys(global_discordProfile),
+        if(message~'user'~'id' == global_discordProfile:_:'id',
+            delete(global_discordProfile:_);
+            success = true;
+            break
+        )
+    );
+
+    task(_(outer(message),outer(success)) -> (
+            //TODO: Send as embed
+        if(success,
+            dc_send_message(global_chat,{
+                'content' -> 'Your account has been succesfully unlinked. Please link again to join game.',
+                'reply_to' -> message
+            }),
+            //TODO: Send as embed
+            dc_send_message(global_chat,{
+                'content' -> 'Your account was not linked to any minecraft account. Unlinking unsuccesful.',
+                'reply_to' -> message
+            })
+        )
+    ))
 );
 
 // Helper Functions
