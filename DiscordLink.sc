@@ -50,6 +50,7 @@ __on_start() -> (
             'name' -> 'Julia',
             'avatar' -> global_thumbnail
         });
+        //TODO: Send as embed
         if(global_chatWebhook != null,
             logger('Julia initialzed.');
             dc_send_message(global_chat,'Server Started');
@@ -124,15 +125,19 @@ __on_player_connects(player) -> (
     if(player~'player_type' != 'fake' && global_discordProfile:(player~'uuid'):'id' == null,
         random = floor(rand(10^4 - 10^3) + 10^3);
         global_discordProfile:(player~'uuid') = {
-            'verification' : random
+            'verification' : random,
+            'username': str(player)
         };
         run(str('kick %s Please send following message in discord chat to verify: !link %s',player,random));
+        return
     );
 
     task(_(outer(player)) -> (
         pos = _position(player);
         dim = _dim(player);
         type = player~'player_type';
+
+        //TODO: Send as embed
 
         if(type == 'multiplayer' || type == 'singleplayer' || type == 'lan_host' || type == 'lan_player',
             dc_send_message(global_chat, str('%s joined.',player)),
@@ -145,6 +150,8 @@ __on_player_connects(player) -> (
 );
 
 __on_player_disconnects(player, reason)->(
+
+    //TODO: Send as embed
     task(_(outer(player),outer(reason)) -> (
         dc_send_message(global_chat, str('%s left. Reason:\n%s', player, reason))
     ))
@@ -175,21 +182,25 @@ link(message,components) -> (
         if(global_discordProfile:_:'verification' == components:1,
 
             user = message ~ 'user';
-            global_discordProfile:_:'id' = user ~ 'id';
-            global_discordProfile:_:'name' = user ~ 'name';
-            global_discordProfile:_:'nickname' = dc_get_display_name(user,message~'server');
-            global_discordProfile:_:'avatar' = user ~ 'avatar';
-            global_discordProfile:_:'mention_tag' = user ~ 'mention_tag';
-            global_discordProfile:_: 'discriminated_name' = user ~ 'discriminated_name';
-            delete(global_discordProfile:_:'verification');
+            userProfile = global_discordProfile:_;
+            userProfile:'id' = user ~ 'id';
+            userProfile:'name' = user ~ 'name';
+            userProfile:'nickname' = dc_get_display_name(user,message~'server');
+            userProfile:'avatar' = user ~ 'avatar';
+            userProfile:'mention_tag' = user ~ 'mention_tag';
+            userProfile:'discriminated_name' = user ~ 'discriminated_name';
+            delete(userProfile:'verification');
             success = true;
             break;
         );
     );
-    
+    //TODO: Send as embed
     task(_(outer(message)) -> (
         if(success,
-            //TODO: Send messages and stuff
+            dc_send_message(global_chat,{
+                'content' -> str('Your account has been linked to %s',userProfile:'username'),
+                'reply_to' -> message
+            });
         )
     ));
 );
